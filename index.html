@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nextstar Reminders</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 480px;
+      margin: auto;
+      text-align: center;
+    }
+    label {
+      display: block;
+      width: 100%;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      text-align: left;
+    }
+    .date-container {
+      position: relative;
+      width: 100%;
+    }
+    .date-placeholder {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    input[type="date"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    input[type="date"]:focus + .date-placeholder,
+    input[type="date"]:valid + .date-placeholder {
+      opacity: 0;
+    }
+    #calendarLinks {
+      margin-top: 1.5rem;
+    }
+    a.button-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      background: #1e90ff;
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+    a.button-link:hover {
+      background: #0b76d1;
+    }
+    a.button-link img {
+      width: 24px;
+      height: 24px;
+    }
+    img.logo {
+      max-width: 240px;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <img src="nextstar-logo-wide.png" alt="Nextstar Logo" class="logo">
+  <h1>Treatment Reminders</h1>
+  <p>Thank you for purchasing Nextstar. Please select a date 30 days from when the first treatment was applied to receive reminders for the next 5 months.</p>
+  <label for="startDate">Select Next Application Date:</label>
+  <div class="date-container">
+    <input type="date" id="startDate" required onchange="generateLinks()">
+    <span class="date-placeholder">Select Date</span>
+  </div>
+
+  <div id="calendarLinks" style="display: none;">
+    <a id="googleCal" class="button-link" target="_blank">
+      <img src="google-icon.png" alt="Google"> Add to Google Calendar
+    </a>
+    <a id="icsDownload" class="button-link" download="nextstar-reminder.ics">
+      <img src="apple-icon.png" alt="Apple"> Add to Apple Calendar
+    </a>
+  </div>
+
+  <script>
+    function formatDateGoogle(date) {
+      return date.toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15) + 'Z';
+    }
+
+    function generateICSContent(date) {
+      const dtstart = date.toISOString().slice(0, 10).replace(/-/g, '');
+      return `BEGIN:VCALENDAR\nVERSION:2.0\nCALSCALE:GREGORIAN\nBEGIN:VEVENT\nDTSTAMP:${dtstart}T000000Z\nUID:nextstar-${dtstart}\nSUMMARY:Nextstar Treatment Reminder\nDESCRIPTION:Monthly reminder to apply your pet’s Nextstar flea & tick treatment.\nDTSTART;VALUE=DATE:${dtstart}\nRRULE:FREQ=MONTHLY;COUNT=5\nDURATION:P1D\nSTATUS:CONFIRMED\nTRANSP:TRANSPARENT\nEND:VEVENT\nEND:VCALENDAR`;
+    }
+
+    function generateLinks() {
+      const dateInput = document.getElementById('startDate').value;
+      if (!dateInput) return;
+
+      const start = new Date(dateInput);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
+
+      const googleLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Nextstar+Treatment+Reminder&dates=${formatDateGoogle(start)}/${formatDateGoogle(end)}&recur=RRULE:FREQ=MONTHLY;COUNT=5&details=Monthly+reminder+to+apply+your+pet’s+Nextstar+flea+%26+tick+treatment.&sf=true&output=xml`;
+
+      const icsContent = generateICSContent(start);
+      const blob = new Blob([icsContent], { type: 'text/calendar' });
+      const icsUrl = URL.createObjectURL(blob);
+
+      document.getElementById('googleCal').href = googleLink;
+      document.getElementById('icsDownload').href = icsUrl;
+      document.getElementById('calendarLinks').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
